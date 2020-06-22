@@ -1440,6 +1440,10 @@ public class MaterialCalendarView extends ViewGroup {
 
         final Calendar end = Calendar.getInstance();
         end.setTime(lastDay.getDate());  //  for comparison
+        end.set(Calendar.HOUR_OF_DAY, 23);
+        end.set(Calendar.MINUTE, 59);
+        end.set(Calendar.SECOND, 59);
+        end.set(Calendar.MILLISECOND, 999);
 
         while (counter.before(end) || counter.equals(end)) {
             final CalendarDay current = CalendarDay.from(counter);
@@ -1488,7 +1492,7 @@ public class MaterialCalendarView extends ViewGroup {
                 } else if (currentSelection.size() == 1) {
                     // Selecting the second date of a range
                     final CalendarDay firstDaySelected = currentSelection.get(0);
-                    adapter.setDateSelected(date, nowSelected);
+//                    adapter.setDateSelected(date, nowSelected);
                     if (firstDaySelected.equals(date)) {
                         // Right now, we are not supporting a range of one day, so we are removing the day instead.
                         dispatchOnDateSelected(date, nowSelected);
