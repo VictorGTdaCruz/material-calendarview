@@ -307,8 +307,8 @@ public class MaterialCalendarView extends ViewGroup {
                     .commit();
 
             setSelectionMode(a.getInteger(
-                R.styleable.MaterialCalendarView_mcv_selectionMode,
-                SELECTION_MODE_SINGLE
+                    R.styleable.MaterialCalendarView_mcv_selectionMode,
+                    SELECTION_MODE_SINGLE
             ));
 
             final int tileSize = a.getLayoutDimension(R.styleable.MaterialCalendarView_mcv_tileSize, INVALID_TILE_DIMENSION);
@@ -1426,31 +1426,11 @@ public class MaterialCalendarView extends ViewGroup {
     }
 
     /**
-     * Dispatch a range of days to a listener, if set. First day must be before last Day.
-     *
-     * @param firstDay first day enclosing a range
-     * @param lastDay  last day enclosing a range
+     *  Dispatch a range of days to a range listener, if set, ordered chronologically
+     *  * @param days Enclosing days ordered from first to last day.
      */
-    protected void dispatchOnRangeSelected(final CalendarDay firstDay, final CalendarDay lastDay) {
+    protected void dispatchOnRangeSelected(@NonNull final List<CalendarDay> days) {
         final OnRangeSelectedListener listener = rangeListener;
-        final List<CalendarDay> days = new ArrayList<>();
-
-        final Calendar counter = Calendar.getInstance();
-        counter.setTime(firstDay.getDate());  //  start from the first day and increment
-
-        final Calendar end = Calendar.getInstance();
-        end.setTime(lastDay.getDate());  //  for comparison
-        end.set(Calendar.HOUR_OF_DAY, 23);
-        end.set(Calendar.MINUTE, 59);
-        end.set(Calendar.SECOND, 59);
-        end.set(Calendar.MILLISECOND, 999);
-
-        while (counter.before(end) || counter.equals(end)) {
-            final CalendarDay current = CalendarDay.from(counter);
-            adapter.setDateSelected(current, true);
-            days.add(current);
-            counter.add(Calendar.DATE, 1);
-        }
 
         if (listener != null) {
             listener.onRangeSelected(MaterialCalendarView.this, days);
@@ -1492,16 +1472,18 @@ public class MaterialCalendarView extends ViewGroup {
                 } else if (currentSelection.size() == 1) {
                     // Selecting the second date of a range
                     final CalendarDay firstDaySelected = currentSelection.get(0);
-//                    adapter.setDateSelected(date, nowSelected);
                     if (firstDaySelected.equals(date)) {
                         // Right now, we are not supporting a range of one day, so we are removing the day instead.
+                        adapter.setDateSelected(date, nowSelected);
                         dispatchOnDateSelected(date, nowSelected);
                     } else if (firstDaySelected.isAfter(date)) {
                         // Selecting a range, dispatching...
-                        dispatchOnRangeSelected(date, firstDaySelected);
+                        adapter.selectRange(date, firstDaySelected);
+                        dispatchOnRangeSelected(adapter.getSelectedDates());
                     } else {
                         // Selecting a range, dispatching in reverse order...
-                        dispatchOnRangeSelected(firstDaySelected, date);
+                        adapter.selectRange(firstDaySelected, date);
+                        dispatchOnRangeSelected(adapter.getSelectedDates());
                     }
                 } else {
                     // Clearing selection and making a selection of the new date.
@@ -1532,9 +1514,11 @@ public class MaterialCalendarView extends ViewGroup {
         if (firstDay == null || lastDay == null) {
             return;
         } else if (firstDay.isAfter(lastDay)) {
-            dispatchOnRangeSelected(lastDay, firstDay);
+            adapter.selectRange(lastDay, firstDay);
+            dispatchOnRangeSelected(adapter.getSelectedDates());
         } else {
-            dispatchOnRangeSelected(firstDay, lastDay);
+            adapter.selectRange(firstDay, lastDay);
+            dispatchOnRangeSelected(adapter.getSelectedDates());
         }
     }
 

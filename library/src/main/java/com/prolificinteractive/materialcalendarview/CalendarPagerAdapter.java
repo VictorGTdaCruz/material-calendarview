@@ -12,6 +12,7 @@ import com.prolificinteractive.materialcalendarview.format.WeekDayFormatter;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -305,6 +306,36 @@ abstract class CalendarPagerAdapter<V extends CalendarPagerView> extends PagerAd
                 invalidateSelectedDates();
             }
         }
+    }
+
+    /**
+     * Clear the previous selection, select the range of days from first to last, and finally
+     * invalidate. First day should be before last day, otherwise the selection won't happen.
+     *
+     * @param first The first day of the range.
+     * @param last  The last day in the range.
+     * @see CalendarPagerAdapter#setDateSelected(CalendarDay, boolean)
+     */
+    public void selectRange(final CalendarDay first, final CalendarDay last) {
+        selectedDates.clear();
+
+        final Calendar counter = Calendar.getInstance();
+        counter.setTime(first.getDate());  //  start from the first day and increment
+
+        final Calendar end = Calendar.getInstance();
+        end.setTime(last.getDate());  //  for comparison
+        end.set(Calendar.HOUR_OF_DAY, 23);
+        end.set(Calendar.MINUTE, 59);
+        end.set(Calendar.SECOND, 59);
+        end.set(Calendar.MILLISECOND, 999);
+
+        while (counter.before(end) || counter.equals(end)) {
+            final CalendarDay current = CalendarDay.from(counter);
+            selectedDates.add(current);
+            counter.add(Calendar.DATE, 1);
+        }
+
+        invalidateSelectedDates();
     }
 
     private void invalidateSelectedDates() {
